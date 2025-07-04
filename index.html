@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EarnWatch - Video Viewing & Earning Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .earning-counter {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    
+    <!-- Header -->
+    <header class="gradient-bg text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-play-circle text-2xl"></i>
+                <h1 class="text-xl font-bold">EarnWatch</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div id="earnings-display" class="hidden bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                    <span class="text-sm font-medium">₹<span id="current-earnings">0.00</span></span>
+                </div>
+                <div id="user-menu" class="hidden flex items-center space-x-2">
+                    <span id="username-display" class="text-sm font-medium"></span>
+                    <button onclick="logout()" class="text-sm hover:text-red-300">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        
+        <!-- Login/Signup Section -->
+        <div id="auth-section" class="max-w-md mx-auto">
+            <div class="bg-white rounded-lg shadow-lg p-8 card-hover">
+                <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Welcome to EarnWatch</h2>
+                
+                <!-- Login Form -->
+                <div id="login-form" class="fade-in">
+                    <h3 class="text-lg font-semibold mb-4">Login</h3>
+                    <form onsubmit="handleLogin(event)">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" id="login-email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <input type="password" id="login-password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300">
+                            Login
+                        </button>
+                    </form>
+                    <p class="text-center mt-4 text-sm text-gray-600">
+                        Don't have an account? 
+                        <a href="#" onclick="showSignup()" class="text-blue-600 hover:underline">Sign up</a>
+                    </p>
+                </div>
+                
+                <!-- Signup Form -->
+                <div id="signup-form" class="hidden fade-in">
+                    <h3 class="text-lg font-semibold mb-4">Sign Up</h3>
+                    <form onsubmit="handleSignup(event)">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                            <input type="text" id="signup-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" id="signup-email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <input type="password" id="signup-password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300">
+                            Sign Up
+                        </button>
+                    </form>
+                    <p class="text-center mt-4 text-sm text-gray-600">
+                        Already have an account? 
+                        <a href="#" onclick="showLogin()" class="text-blue-600 hover:underline">Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="hidden">
+            
+            <!-- Navigation -->
+            <nav class="bg-white rounded-lg shadow-lg p-4 mb-6">
+                <div class="flex flex-wrap justify-center space-x-4">
+                    <button onclick="showPage('home')" class="nav-btn bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300">
+                        <i class="fas fa-home mr-2"></i>Home
+                    </button>
+                    <button onclick="showPage('watch')" class="nav-btn bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-300">
+                        <i class="fas fa-play mr-2"></i>Watch Videos
+                    </button>
+                    <button onclick="showPage('referral')" class="nav-btn bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition duration-300">
+                        <i class="fas fa-share-alt mr-2"></i>Referrals
+                    </button>
+                    <button onclick="showPage('withdraw')" class="nav-btn bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-300">
+                        <i class="fas fa-wallet mr-2"></i>Withdraw
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Home Page -->
+            <div id="home-page" class="page-content">
+                <!-- Banner Ad Space -->
+                <div class="bg-gray-200 border-2 border-dashed border-gray-400 rounded-lg p-8 mb-6 text-center">
+                    <p class="text-gray-600">Banner Ad Space (728x90)</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Total Earnings</p>
+                                <p class="text-2xl font-bold earning-counter">₹<span id="total-earnings">0.00</span></p>
+                            </div>
+                            <div class="text-green-500 text-3xl">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Videos Watched</p>
+                                <p class="text-2xl font-bold text-blue-600" id="videos-watched">0</p>
+                            </div>
+                            <div class="text-blue-500 text-3xl">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Referral Earnings</p>
+                                <p class="text-2xl font-bold text-purple-600">₹<span id="referral-earnings">0.00</span></p>
+                            </div>
+                            <div class="text-purple-500 text-3xl">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+                    <div id="recent-activity" class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fas fa-play-circle text-blue-500 mr-3"></i>
+                                <span class="text-sm">Welcome to EarnWatch!</span>
+                            </div>
+                            <span class="text-xs text-gray-500">Just now</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Watch Videos Page -->
+            <div id="watch-page" class="page-content hidden">
+                <div class="max-w-4xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-6">Watch Videos & Earn</h2>
+                    
+                    <!-- Video Input -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Add Video Link</h3>
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <input type="text" id="video-url" placeholder="Paste YouTube or Instagram Reel URL here..." class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="loadVideo()" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-300">
+                                <i class="fas fa-play mr-2"></i>Load Video
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            YouTube videos: ₹2 per watch | Instagram Reels: ₹1 per watch
+                        </p>
+                    </div>
+
+                    <!-- Video Player -->
+                    <div id="video-player" class="bg-white rounded-lg shadow-lg p-6 mb-6 hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Now Playing</h3>
+                            <div class="flex items-center space-x-2">
+                                <span id="video-type" class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"></span>
+                                <span id="earning-amount" class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"></span>
+                            </div>
+                        </div>
+                        <div id="video-container" class="video-container mb-4">
+                            <!-- Video will be loaded here -->
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-gray-600">
+                                <i class="fas fa-clock mr-1"></i>
+                                <span id="watch-time">0:00</span> / <span id="total-time">0:00</span>
+                            </div>
+                            <div id="completion-status" class="text-sm text-yellow-600 hidden">
+                                <i class="fas fa-hourglass-half mr-1"></i>
+                                Keep watching to earn!
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Banner Ad Space -->
+                    <div class="bg-gray-200 border-2 border-dashed border-gray-400 rounded-lg p-8 mb-6 text-center">
+                        <p class="text-gray-600">Video Page Banner Ad (728x90)</p>
+                    </div>
+
+                    <!-- Earning History -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Earning History</h3>
+                        <div id="earning-history" class="space-y-3">
+                            <div class="text-center py-8 text-gray-500">
+                                <i class="fas fa-history text-3xl mb-2"></i>
+                                <p>No videos watched yet. Start earning now!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral Page -->
+            <div id="referral-page" class="page-content hidden">
+                <div class="max-w-2xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-6">Referral Program</h2>
+                    
+                    <!-- Referral Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                            <h3 class="text-lg font-semibold mb-2">Referral Link</h3>
+                            <div class="flex items-center bg-gray-50 rounded-md p-3">
+                                <input type="text" id="referral-link" class="flex-1 bg-transparent text-sm" readonly>
+                                <button onclick="copyReferralLink()" class="ml-2 text-blue-600 hover:text-blue-700">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">Share this link to earn commissions!</p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                            <h3 class="text-lg font-semibold mb-2">Referral Stats</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-600">Total Referrals:</span>
+                                    <span class="font-semibold" id="total-referrals">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-600">Referral Earnings:</span>
+                                    <span class="font-semibold text-green-600">₹<span id="referral-earnings-display">0.00</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Referral Info -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">How Referrals Work</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                <i class="fas fa-youtube text-red-500 text-3xl mb-2"></i>
+                                <h4 class="font-semibold">YouTube Videos</h4>
+                                <p class="text-sm text-gray-600">Earn ₹1 per referral view</p>
+                            </div>
+                            <div class="text-center p-4 bg-pink-50 rounded-lg">
+                                <i class="fas fa-instagram text-pink-500 text-3xl mb-2"></i>
+                                <h4 class="font-semibold">Instagram Reels</h4>
+                                <p class="text-sm text-gray-600">Earn ₹0.5 per referral view</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Share Options -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Share Your Link</h3>
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="shareOnWhatsApp()" class="flex items-center bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-300">
+                                <i class="fab fa-whatsapp mr-2"></i>WhatsApp
+                            </button>
+                            <button onclick="shareOnTelegram()" class="flex items-center bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">
+                                <i class="fab fa-telegram mr-2"></i>Telegram
+                            </button>
+                            <button onclick="shareOnFacebook()" class="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300">
+                                <i class="fab fa-facebook mr-2"></i>Facebook
+                            </button>
+                            <button onclick="shareOnTwitter()" class="flex items-center bg-blue-400 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition duration-300">
+                                <i class="fab fa-twitter mr-2"></i>Twitter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdraw Page -->
+            <div id="withdraw-page" class="page-content hidden">
+                <div class="max-w-2xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-6">Withdraw Earnings</h2>
+                    
+                    <!-- Withdrawal Form -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Withdrawal Request</h3>
+                        <form onsubmit="handleWithdrawal(event)">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Amount (₹2,000 - ₹6,000)</label>
+                                <input type="number" id="withdrawal-amount" min="2000" max="6000" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <p class="text-sm text-gray-600 mt-1">Available balance: ₹<span id="available-balance">0.00</span></p>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">UPI ID</label>
+                                <input type="text" id="upi-id" placeholder="yourname@paytm" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Confirm UPI ID</label>
+                                <input type="text" id="confirm-upi-id" placeholder="yourname@paytm" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300">
+                                <i class="fas fa-money-bill-wave mr-2"></i>Request Withdrawal
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Banner Ad Space -->
+                    <div class="bg-gray-200 border-2 border-dashed border-gray-400 rounded-lg p-8 mb-6 text-center">
+                        <p class="text-gray-600">Withdrawal Page Banner Ad (728x90)</p>
+                    </div>
+
+                    <!-- Withdrawal History -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Withdrawal History</h3>
+                        <div id="withdrawal-history" class="space-y-3">
+                            <div class="text-center py-8 text-gray-500">
+                                <i class="fas fa-history text-3xl mb-2"></i>
+                                <p>No withdrawals yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-8 rounded-lg text-center">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading video...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Toast messages will appear here -->
+    </div>
+
+    <script>
+        // App State Management
+        let currentUser = null;
+        let userEarnings = 0;
+        let referralEarnings = 0;
+        let videosWatched = 0;
+        let currentVideo = null;
+        let videoWatchTimer = null;
+        let videoStartTime = null;
+        let totalReferrals = 0;
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+            generateReferralCode();
+            checkReferralParameter();
+        });
+
+        // Authentication Functions
+        function checkAuthStatus() {
+            const userData = localStorage.getItem('earnwatch_user');
+            if (userData) {
+                currentUser = JSON.parse(userData);
+                showDashboard();
+                loadUserData();
+            } else {
+                showAuthSection();
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            const users = JSON.parse(localStorage.getItem('earnwatch_users') || '[]');
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('earnwatch_user', JSON.stringify(user));
+                showToast('Login successful!', 'success');
+                showDashboard();
+                loadUserData();
+            } else {
+                showToast('Invalid credentials!', 'error');
+            }
+        }
+
+        function handleSignup(event) {
+            event.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            
+            const users = JSON.parse(localStorage.getItem('earnwatch_users') || '[]');
+            const existingUser = users.find(u => u.email === email);
+            
+            if (existingUser) {
+                showToast('User already exists!', 'error');
+                return;
+            }
+            
+            const newUser = {
+                id: Date.now(),
+                name,
+                email,
+                password,
+                earnings: 0,
+                referralEarnings: 0,
+                videosWatched: 0,
+                referralCode: generateUniqueReferralCode(),
+                referrals: 0,
+                joinDate: new Date().toISOString()
+            };
+            
+            users.push(newUser);
+            localStorage.setItem('earnwatch_users', JSON.stringify(users));
+            
+            currentUser = newUser;
+            localStorage.setItem('earnwatch_user', JSON.stringify(newUser));
+            
+            showToast('Account created successfully!', 'success');
+            showDashboard();
+            loadUserData();
+        }
+
+        function logout() {
+            localStorage.removeItem('earnwatch_user');
+            currentUser = null;
+            showAuthSection();
+            showToast('Logged out successfully!', 'info');
+        }
+
+        function showLogin() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('signup-form').classList.add('hidden');
+        }
+
+        function showSignup() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+        }
+
+        function showAuthSection() {
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('earnings-display').classList.add('hidden');
+            document.getElementById('user-menu').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+            document.getElementById('earnings-display').classList.remove('hidden');
+            document.getElementById('user-menu').classList.remove('hidden');
+            
+            document.getElementById('username-display').textContent = currentUser.name;
+            showPage('home');
+        }
+
+        // User Data Management
+        function loadUserData() {
+            userEarnings = currentUser.earnings || 0;
+            referralEarnings = currentUser.referralEarnings || 0;
+            videosWatched = currentUser.videosWatched || 0;
+            totalReferrals = currentUser.referrals || 0;
+            
+            updateEarningsDisplay();
+            updateStats();
+            loadEarningHistory();
+            loadWithdrawalHistory();
+            updateReferralLink();
+        }
+
+        function saveUserData() {
+            currentUser.earnings = userEarnings;
+            currentUser.referralEarnings = referralEarnings;
+            currentUser.videosWatched = videosWatched;
+            currentUser.referrals = totalReferrals;
+            
+            localStorage.setItem('earnwatch_user', JSON.stringify(currentUser));
+            
+            const users = JSON.parse(localStorage.getItem('earnwatch_users') || '[]');
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                users[userIndex] = currentUser;
+                localStorage.setItem('earnwatch_users', JSON.stringify(users));
+            }
+        }
+
+        function updateEarningsDisplay() {
+            const totalEarnings = userEarnings + referralEarnings;
+            document.getElementById('current-earnings').textContent = totalEarnings.toFixed(2);
+            document.getElementById('total-earnings').textContent = totalEarnings.toFixed(2);
+            document.getElementById('referral-earnings').textContent = referralEarnings.toFixed(2);
+            document.getElementById('referral-earnings-display').textContent = referralEarnings.toFixed(2);
+            document.getElementById('available-balance').textContent = totalEarnings.toFixed(2);
+        }
+
+        function updateStats() {
+            document.getElementById('videos-watched').textContent = videosWatched;
+            document.getElementById('total-referrals').textContent = totalReferrals;
+        }
+
+        // Page Navigation
+        function showPage(pageName) {
+            const pages = document.querySelectorAll('.page-content');
+            pages.forEach(page => page.classList.add('hidden'));
+            
+            const targetPage = document.getElementById(pageName + '-page');
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+                targetPage.classList.add('fade-in');
+            }
+        }
+
+        // Video Functions
+        function loadVideo() {
+            const url = document.getElementById('video-url').value.trim();
+            if (!url) {
+                showToast('Please enter a video URL', 'error');
+                return;
+            }
+            
+            const videoType = detectVideoType(url);
+            if (!videoType) {
+                showToast('Invalid video URL. Please use YouTube or Instagram Reel links.', 'error');
+                return;
+            }
+            
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            
+            setTimeout(() => {
+                embedVideo(url, videoType);
+                document.getElementById('loading-overlay').classList.add('hidden');
+            }, 1500);
+        }
+
+        function detectVideoType(url) {
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                return 'youtube';
+            } else if (url.includes('instagram.com') && url.includes('reel')) {
+                return 'instagram';
+            }
+            return null;
+        }
+
+        function embedVideo(url, type) {
+            const videoContainer = document.getElementById('video-container');
+            const videoPlayer = document.getElementById('video-player');
+            
+            let embedUrl = '';
+            let earnings = 0;
+            
+            if (type === 'youtube') {
+                const videoId = extractYouTubeId(url);
+                embedUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1`;
+                earnings = 2;
+            } else if (type === 'instagram') {
+                embedUrl = `${url}embed/`;
+                earnings = 1;
+            }
+            
+            videoContainer.innerHTML = `<iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`;
+            
+            document.getElementById('video-type').textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            document.getElementById('earning-amount').textContent = `₹${earnings}`;
+            
+            videoPlayer.classList.remove('hidden');
+            
+            currentVideo = {
+                url,
+                type,
+                earnings,
+                startTime: Date.now()
+            };
+            
+            startVideoTimer();
+        }
+
+        function extractYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function startVideoTimer() {
+            let watchTime = 0;
+            const requiredTime = currentVideo.type === 'youtube' ? 30 : 15; // seconds
+            
+            document.getElementById('completion-status').classList.remove('hidden');
+            
+            videoWatchTimer = setInterval(() => {
+                watchTime++;
+                const minutes = Math.floor(watchTime / 60);
+                const seconds = watchTime % 60;
+                document.getElementById('watch-time').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (watchTime >= requiredTime) {
+                    completeVideoWatch();
+                }
+            }, 1000);
+        }
+
+        function completeVideoWatch() {
+            clearInterval(videoWatchTimer);
+            
+            const isReferral = localStorage.getItem('earnwatch_referral');
+            let earningAmount = currentVideo.earnings;
+            
+            if (isReferral) {
+                earningAmount = currentVideo.type === 'youtube' ? 1 : 0.5;
+                processReferralEarning(isReferral, earningAmount);
+            }
+            
+            userEarnings += currentVideo.earnings;
+            videosWatched++;
+            
+            addToEarningHistory(currentVideo);
+            addToRecentActivity(`Watched ${currentVideo.type} video`, `+₹${currentVideo.earnings}`);
+            
+            saveUserData();
+            updateEarningsDisplay();
+            updateStats();
+            
+            document.getElementById('completion-status').innerHTML = `
+                <i class="fas fa-check-circle text-green-500 mr-1"></i>
+                Video completed! +₹${currentVideo.earnings}
+            `;
+            document.getElementById('completion-status').classList.remove('text-yellow-600');
+            document.getElementById('completion-status').classList.add('text-green-600');
+            
+            showToast(`Congratulations! You earned ₹${currentVideo.earnings}`, 'success');
+            
+            // Reset video input
+            document.getElementById('video-url').value = '';
+            
+            // Hide video player after a delay
+            setTimeout(() => {
+                document.getElementById('video-player').classList.add('hidden');
+            }, 3000);
+        }
+
+        function processReferralEarning(referrerCode, amount) {
+            const users = JSON.parse(localStorage.getItem('earnwatch_users') || '[]');
+            const referrer = users.find(u => u.referralCode === referrerCode);
+            
+            if (referrer) {
+                referrer.referralEarnings = (referrer.referralEarnings || 0) + amount;
+                referrer.referrals = (referrer.referrals || 0) + 1;
+                
+                const userIndex = users.findIndex(u => u.id === referrer.id);
+                if (userIndex !== -1) {
+                    users[userIndex] = referrer;
+                    localStorage.setItem('earnwatch_users', JSON.stringify(users));
+                }
+            }
+            
+            localStorage.removeItem('earnwatch_referral');
+        }
+
+        // Referral Functions
+        function generateReferralCode() {
+            if (!currentUser) return;
+            
+            if (!currentUser.referralCode) {
+                currentUser.referralCode = generateUniqueReferralCode();
+                saveUserData();
+            }
+            
+            updateReferralLink();
+        }
+
+        function generateUniqueReferralCode() {
+            return 'REF' + Math.random().toString(36).substr(2, 8).toUpperCase();
+        }
+
+        function updateReferralLink() {
+            if (!currentUser) return;
+            
+            const referralLink = `${window.location.origin}${window.location.pathname}?ref=${currentUser.referralCode}`;
+            document.getElementById('referral-link').value = referralLink;
+        }
+
+        function copyReferralLink() {
+            const referralLink = document.getElementById('referral-link');
+            referralLink.select();
+            referralLink.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            showToast('Referral link copied!', 'success');
+        }
+
+        function checkReferralParameter() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const referralCode = urlParams.get('ref');
+            
+            if (referralCode) {
+                localStorage.setItem('earnwatch_referral', referralCode);
+                showToast('You\'re using a referral link! Both you and your referrer will earn bonus rewards.', 'info');
+            }
+        }
+
+        function shareOnWhatsApp() {
+            const referralLink = document.getElementById('referral-link').value;
+            const message = `Join EarnWatch and start earning money by watching videos! Use my referral link: ${referralLink}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        function shareOnTelegram() {
+            const referralLink = document.getElementById('referral-link').value;
+            const message = `Join EarnWatch and start earning money by watching videos! Use my referral link: ${referralLink}`;
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        function shareOnFacebook() {
+            const referralLink = document.getElementById('referral-link').value;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`, '_blank');
+        }
+
+        function shareOnTwitter() {
+            const referralLink = document.getElementById('referral-link').value;
+            const message = `Join EarnWatch and start earning money by watching videos!`;
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(referralLink)}`, '_blank');
+        }
+
+        // Withdrawal Functions
+        function handleWithdrawal(event) {
+            event.preventDefault();
+            
+            const amount = parseFloat(document.getElementById('withdrawal-amount').value);
+            const upiId = document.getElementById('upi-id').value;
+            const confirmUpiId = document.getElementById('confirm-upi-id').value;
+            
+            const totalEarnings = userEarnings + referralEarnings;
+            
+            if (amount < 2000 || amount > 6000) {
+                showToast('Withdrawal amount must be between ₹2,000 and ₹6,000', 'error');
+                return;
+            }
+            
+            if (amount > totalEarnings) {
+                showToast('Insufficient balance', 'error');
+                return;
+            }
+            
+            if (upiId !== confirmUpiId) {
+                showToast('UPI IDs do not match', 'error');
+                return;
+            }
+            
+            if (!validateUpiId(upiId)) {
+                showToast('Invalid UPI ID format', 'error');
+                return;
+            }
+            
+            // Process withdrawal
+            processWithdrawal(amount, upiId);
+        }
+
+        function validateUpiId(upiId) {
+            const upiRegex = /^[a-zA-Z0-9.-]{2,256}@[a-zA-Z][a-zA-Z0-9.-]{2,64}$/;
+            return upiRegex.test(upiId);
+        }
+
+        function processWithdrawal(amount, upiId) {
+            const withdrawal = {
+                id: Date.now(),
+                amount,
+                upiId,
+                status: 'pending',
+                date: new Date().toISOString(),
+                userId: currentUser.id
+            };
+            
+            // Save withdrawal request
+            const withdrawals = JSON.parse(localStorage.getItem('earnwatch_withdrawals') || '[]');
+            withdrawals.push(withdrawal);
+            localStorage.setItem('earnwatch_withdrawals', JSON.stringify(withdrawals));
+            
+            // Deduct from user earnings
+            const totalEarnings = userEarnings + referralEarnings;
+            const remainingEarnings = totalEarnings - amount;
+            
+            if (referralEarnings >= amount) {
+                referralEarnings -= amount;
+            } else {
+                const fromReferral = referralEarnings;
+                const fromDirect = amount - fromReferral;
+                referralEarnings = 0;
+                userEarnings -= fromDirect;
+            }
+            
+            saveUserData();
+            updateEarningsDisplay();
+            loadWithdrawalHistory();
+            
+            // Clear form
+            document.getElementById('withdrawal-amount').value = '';
+            document.getElementById('upi-id').value = '';
+            document.getElementById('confirm-upi-id').value = '';
+            
+            showToast(`Withdrawal request submitted successfully! Amount: ₹${amount}`, 'success');
+            addToRecentActivity(`Withdrawal request submitted`, `₹${amount}`);
+        }
+
+        // History Functions
+        function addToEarningHistory(video) {
+            const history = JSON.parse(localStorage.getItem('earnwatch_earning_history') || '[]');
+            const entry = {
+                id: Date.now(),
+                userId: currentUser.id,
+                type: video.type,
+                earnings: video.earnings,
+                date: new Date().toISOString()
+            };
+            
+            history.unshift(entry);
+            localStorage.setItem('earnwatch_earning_history', JSON.stringify(history));
+            loadEarningHistory();
+        }
+
+        function loadEarningHistory() {
+            const history = JSON.parse(localStorage.getItem('earnwatch_earning_history') || '[]');
+            const userHistory = history.filter(entry => entry.userId === currentUser.id);
+            
+            const container = document.getElementById('earning-history');
+            
+            if (userHistory.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-history text-3xl mb-2"></i>
+                        <p>No videos watched yet. Start earning now!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = userHistory.slice(0, 10).map(entry => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-${entry.type === 'youtube' ? 'youtube' : 'instagram'} text-${entry.type === 'youtube' ? 'red' : 'pink'}-500 mr-3"></i>
+                        <div>
+                            <p class="text-sm font-medium">${entry.type.charAt(0).toUpperCase() + entry.type.slice(1)} Video</p>
+                            <p class="text-xs text-gray-500">${new Date(entry.date).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                    <span class="text-green-600 font-semibold">+₹${entry.earnings}</span>
+                </div>
+            `).join('');
+        }
+
+        function loadWithdrawalHistory() {
+            const withdrawals = JSON.parse(localStorage.getItem('earnwatch_withdrawals') || '[]');
+            const userWithdrawals = withdrawals.filter(w => w.userId === currentUser.id);
+            
+            const container = document.getElementById('withdrawal-history');
+            
+            if (userWithdrawals.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-history text-3xl mb-2"></i>
+                        <p>No withdrawals yet.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = userWithdrawals.map(withdrawal => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-money-bill-wave text-green-500 mr-3"></i>
+                        <div>
+                            <p class="text-sm font-medium">₹${withdrawal.amount}</p>
+                            <p class="text-xs text-gray-500">${withdrawal.upiId}</p>
+                            <p class="text-xs text-gray-500">${new Date(withdrawal.date).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                    <span class="px-2 py-1 bg-${withdrawal.status === 'pending' ? 'yellow' : withdrawal.status === 'approved' ? 'green' : 'red'}-100 text-${withdrawal.status === 'pending' ? 'yellow' : withdrawal.status === 'approved' ? 'green' : 'red'}-800 text-xs rounded-full capitalize">
+                        ${withdrawal.status}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function addToRecentActivity(activity, amount) {
+            const activities = JSON.parse(localStorage.getItem('earnwatch_recent_activity') || '[]');
+            const entry = {
+                id: Date.now(),
+                userId: currentUser.id,
+                activity,
+                amount,
+                date: new Date().toISOString()
+            };
+            
+            activities.unshift(entry);
+            activities.splice(10); // Keep only last 10 activities
+            localStorage.setItem('earnwatch_recent_activity', JSON.stringify(activities));
+            
+            loadRecentActivity();
+        }
+
+        function loadRecentActivity() {
+            const activities = JSON.parse(localStorage.getItem('earnwatch_recent_activity') || '[]');
+            const userActivities = activities.filter(activity => activity.userId === currentUser.id);
+            
+            const container = document.getElementById('recent-activity');
+            
+            if (userActivities.length === 0) {
+                container.innerHTML = `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-play-circle text-blue-500 mr-3"></i>
+                            <span class="text-sm">Welcome to EarnWatch!</span>
+                        </div>
+                        <span class="text-xs text-gray-500">Just now</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = userActivities.map(activity => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-${activity.activity.includes('Watched') ? 'play-circle' : 'money-bill-wave'} text-${activity.activity.includes('Watched') ? 'blue' : 'green'}-500 mr-3"></i>
+                        <span class="text-sm">${activity.activity}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-green-600 font-semibold">${activity.amount}</span>
+                        <p class="text-xs text-gray-500">${new Date(activity.date).toLocaleDateString()}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Utility Functions
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `p-4 rounded-lg shadow-lg text-white slide-in ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+            }`;
+            toast.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${
+                        type === 'success' ? 'check-circle' : 
+                        type === 'error' ? 'exclamation-circle' : 
+                        type === 'warning' ? 'exclamation-triangle' : 'info-circle'
+                    } mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.getElementById('toast-container').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+
+        // Load recent activity on dashboard load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (currentUser) {
+                loadRecentActivity();
+            }
+        });
+    </script>
+</body>
+</html>
